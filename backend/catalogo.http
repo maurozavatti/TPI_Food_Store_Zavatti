@@ -1,0 +1,454 @@
+@baseUrl = http://localhost:8000/api/v1
+
+### ==========================================================
+### TP Unidad 8 - Formularios y Tablas
+### Ejecutar EN ORDEN con la base vacía (ver README: TRUNCATE).
+### Cada título indica el código HTTP esperado.
+### ==========================================================
+
+
+### ==========================================================
+### MÓDULO: LOGIN (TP9: todas las rutas exigen sesión)
+### ==========================================================
+
+### L0. Login como admin: REST Client guarda la cookie para las requests siguientes → 200
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=admin&password=Admin1234!
+
+
+### ==========================================================
+### MÓDULO: HEALTH
+### ==========================================================
+
+### H1. API viva → 200
+GET {{baseUrl}}/health/
+
+### H2. Conexión a la base → 200
+GET {{baseUrl}}/health/db
+
+
+### ==========================================================
+### MÓDULO: UNIDADES DE MEDIDA (solo lectura, cargadas por seed.py)
+### ==========================================================
+
+### U1. Listar las 7 unidades → 200
+GET {{baseUrl}}/unidades-medida/
+
+### U2. Detalle de una unidad (gramo) → 200
+GET {{baseUrl}}/unidades-medida/2
+
+### U3. Unidad inexistente → 404
+GET {{baseUrl}}/unidades-medida/99
+
+
+### ==========================================================
+### MÓDULO: CATEGORÍAS
+### ==========================================================
+
+### C1. Crear categoría (id=1) → 201
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Pizzas",
+  "descripcion": "Pizzas a la piedra"
+}
+
+### C2. Crear categoría (id=2) → 201
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Bebidas",
+  "descripcion": "Gaseosas y aguas"
+}
+
+### C3. RN-03: crear sin descripción, queda "" (id=3) → 201
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Postres"
+}
+
+### C4. Listar (paginado por defecto offset=0, limit=10) → 200
+GET {{baseUrl}}/categorias/
+
+### C5. Paginación: saltar 1 y traer 1 → 200
+GET {{baseUrl}}/categorias/?offset=1&limit=1
+
+### C6. Búsqueda parcial por nombre (sin distinguir mayúsculas) → 200
+GET {{baseUrl}}/categorias/?nombre=BEB
+
+### C7. Detalle → 200
+GET {{baseUrl}}/categorias/1
+
+### C8. Actualizar solo la descripción (CategoriaUpdate parcial) → 200
+PUT {{baseUrl}}/categorias/2
+Content-Type: application/json
+
+{
+  "descripcion": "Gaseosas, aguas y jugos"
+}
+
+### C9. RN-01: nombre vacío → 422
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": ""
+}
+
+### C10. RN-01: nombre solo con espacios → 422
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "     "
+}
+
+### C11. RN-02: nombre duplicado con otras mayúsculas y espacios → 409
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "  pIZZAS  "
+}
+
+### C12. RN-02: renombrar con el nombre de OTRA categoría → 409
+PUT {{baseUrl}}/categorias/2
+Content-Type: application/json
+
+{
+  "nombre": "pizzas"
+}
+
+### C13. RN-04: detalle inexistente → 404
+GET {{baseUrl}}/categorias/99
+
+### C14. RN-04: actualizar inexistente → 404
+PUT {{baseUrl}}/categorias/99
+Content-Type: application/json
+
+{
+  "nombre": "No existe"
+}
+
+### C15. Paginación inválida: limit=0 → 422
+GET {{baseUrl}}/categorias/?limit=0
+
+### C16. Paginación inválida: offset negativo → 422
+GET {{baseUrl}}/categorias/?offset=-1
+
+
+### ==========================================================
+### MÓDULO: INGREDIENTES
+### ==========================================================
+
+### I1. Crear ingrediente en gramos (id=1) → 201
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Muzzarella",
+  "descripcion": "Queso muzzarella",
+  "es_alergeno": true,
+  "unidad_medida_id": 2
+}
+
+### I2. Crear ingrediente en mililitros (id=2) → 201
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Salsa de tomate",
+  "unidad_medida_id": 4
+}
+
+### I3. Crear ingrediente (id=3) → 201
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Aceitunas",
+  "unidad_medida_id": 5
+}
+
+### I4. Listar paginado → 200
+GET {{baseUrl}}/ingredientes/?offset=0&limit=10
+
+### I5. Detalle → 200
+GET {{baseUrl}}/ingredientes/1
+
+### I6. Actualizar parcial → 200
+PUT {{baseUrl}}/ingredientes/2
+Content-Type: application/json
+
+{
+  "descripcion": "Salsa de tomate natural"
+}
+
+### I7. Nombre duplicado → 409
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "muzzarella",
+  "unidad_medida_id": 2
+}
+
+### I8. Unidad de medida inexistente → 404
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Orégano",
+  "unidad_medida_id": 99
+}
+
+### I9. Falta unidad_medida_id → 422
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Orégano"
+}
+
+### I10. Detalle inexistente → 404
+GET {{baseUrl}}/ingredientes/99
+
+
+### ==========================================================
+### MÓDULO: PRODUCTOS
+### ==========================================================
+
+### P1. Crear producto con 2 categorías y 2 ingredientes (id=1) → 201
+# La primera categoría de la lista queda como principal
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Pizza muzzarella",
+  "descripcion": "Grande, 8 porciones",
+  "precio_base": 8500.50,
+  "imagenes_url": ["https://ejemplo.com/muzza.jpg"],
+  "categoria_ids": [1, 3],
+  "ingredientes": [
+    { "ingrediente_id": 1, "cantidad": 300 },
+    { "ingrediente_id": 2, "cantidad": 150, "es_removible": false }
+  ]
+}
+
+### P2. RN-08 / RN-09 / RN-20: solo campos obligatorios (id=2) → 201
+# disponible=true, imagenes_url=[] e ingredientes=[] por defecto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Coca Cola 1.5L",
+  "precio_base": 2500,
+  "categoria_ids": [2]
+}
+
+### P3. RN-06: el nombre de producto NO es único (id=3) → 201
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Pizza muzzarella",
+  "precio_base": 0,
+  "categoria_ids": [1]
+}
+
+### P4. Listar paginado → 200
+GET {{baseUrl}}/productos/
+
+### P5. Búsqueda parcial por nombre → 200
+GET {{baseUrl}}/productos/?nombre=pizza
+
+### P6. Detalle (incluye sus categorías) → 200
+GET {{baseUrl}}/productos/1
+
+### P7. Categorías del producto (con es_principal) → 200
+GET {{baseUrl}}/productos/1/categorias
+
+### P8. Ingredientes del producto (con cantidad) → 200
+GET {{baseUrl}}/productos/1/ingredientes
+
+### P9. Productos de una categoría → 200
+GET {{baseUrl}}/categorias/1/productos
+
+### P10. Actualizar solo el precio (las relaciones no cambian) → 200
+PUT {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+  "precio_base": 9000
+}
+
+### P11. RN-12 / RN-21: reemplazar categorías e ingredientes → 200
+PUT {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+  "categoria_ids": [1],
+  "ingredientes": [
+    { "ingrediente_id": 1, "cantidad": 350 },
+    { "ingrediente_id": 3, "cantidad": 8 }
+  ]
+}
+
+### P12. Verificar el reemplazo de ingredientes → 200
+GET {{baseUrl}}/productos/1/ingredientes
+
+### P13. RN-19: sin categoria_ids → 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Sin categoría",
+  "precio_base": 100
+}
+
+### P14. RN-19: categoria_ids vacío → 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Sin categoría",
+  "precio_base": 100,
+  "categoria_ids": []
+}
+
+### P15. RN-11: una categoría inexistente → 404
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Categoría mala",
+  "precio_base": 100,
+  "categoria_ids": [1, 99]
+}
+
+### P16. Ingrediente inexistente → 404
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Ingrediente malo",
+  "precio_base": 100,
+  "categoria_ids": [1],
+  "ingredientes": [{ "ingrediente_id": 99, "cantidad": 1 }]
+}
+
+### P17. RN-07: precio negativo → 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Precio negativo",
+  "precio_base": -10,
+  "categoria_ids": [1]
+}
+
+### P18. RN-06: nombre vacío → 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "  ",
+  "precio_base": 100,
+  "categoria_ids": [1]
+}
+
+### P19. Cantidad de ingrediente en 0 → 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Cantidad cero",
+  "precio_base": 100,
+  "categoria_ids": [1],
+  "ingredientes": [{ "ingrediente_id": 1, "cantidad": 0 }]
+}
+
+### P20. RN-09: imagenes_url debe ser lista de strings → 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Imagen mala",
+  "precio_base": 100,
+  "categoria_ids": [1],
+  "imagenes_url": "no-es-lista.jpg"
+}
+
+### P21. RN-12: PUT con categoria_ids vacío → 422
+PUT {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+  "categoria_ids": []
+}
+
+### P22. RN-10: detalle inexistente → 404
+GET {{baseUrl}}/productos/99
+
+### P23. RN-10: actualizar inexistente → 404
+PUT {{baseUrl}}/productos/99
+Content-Type: application/json
+
+{
+  "precio_base": 100
+}
+
+### P24. Relaciones de producto inexistente → 404
+GET {{baseUrl}}/productos/99/categorias
+
+
+### ==========================================================
+### MÓDULO: BORRADO LÓGICO (soft delete)
+### ==========================================================
+
+### D1. RN-05: borrar categoría con productos activos → 409
+DELETE {{baseUrl}}/categorias/2
+
+### D2. Borrar categoría sin productos (Postres ya no tiene, se reemplazó en P11) → 204
+DELETE {{baseUrl}}/categorias/3
+
+### D3. La categoría borrada ya no se encuentra → 404
+GET {{baseUrl}}/categorias/3
+
+### D4. Pero sigue en la BD: incluir_inactivos=true la muestra con deleted_at → 200
+GET {{baseUrl}}/categorias/?incluir_inactivos=true
+
+### D5. Se puede volver a crear el nombre de una categoría borrada → 201
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Postres"
+}
+
+### D6. RN-14: borrar producto (borrado lógico) → 204
+DELETE {{baseUrl}}/productos/2
+
+### D7. Producto borrado → 404
+GET {{baseUrl}}/productos/2
+
+### D8. Borrar dos veces → 404
+DELETE {{baseUrl}}/productos/2
+
+### D9. Ahora Bebidas no tiene productos activos: se puede borrar → 204
+DELETE {{baseUrl}}/categorias/2
+
+### D10. Borrar ingrediente → 204
+DELETE {{baseUrl}}/ingredientes/3
+
+### D11. Ingrediente borrado → 404
+GET {{baseUrl}}/ingredientes/3
+
+### D12. Borrar categoría inexistente → 404
+DELETE {{baseUrl}}/categorias/99

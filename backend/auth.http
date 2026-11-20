@@ -1,0 +1,242 @@
+@baseUrl = http://localhost:8000/api/v1
+
+### ==========================================================
+### TP Unidad 9 - Autenticación, roles y usuarios
+### Ejecutar EN ORDEN con la base recién creada (usuarios del seed:
+### admin / Admin1234!  y  juan / Juan1234!).
+###
+### REST Client guarda la cookie que manda el servidor (Set-Cookie)
+### y la reenvía sola en las requests siguientes, igual que el navegador.
+### Cada login reemplaza la cookie anterior.
+### ==========================================================
+
+
+### ==========================================================
+### MÓDULO: SIN SESIÓN
+### ==========================================================
+
+### A1. Health es público → 200
+GET {{baseUrl}}/health/
+
+### A2. RN-10: sin cookie, las rutas protegidas responden → 401
+GET {{baseUrl}}/categorias/
+
+### A3. /auth/me sin sesión → 401
+GET {{baseUrl}}/auth/me
+
+
+### ==========================================================
+### MÓDULO: REGISTRO (público)
+### ==========================================================
+
+### R1. HU-01: registrar un usuario (rol "user", sin contraseña en la respuesta) → 201
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "maria",
+  "full_name": "María Gómez",
+  "email": "maria@mail.com",
+  "password": "Maria1234!"
+}
+
+### R2. RN-08: aunque mande "role": "admin", queda como "user" → 201
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "carla",
+  "full_name": "Carla Ruiz",
+  "email": "carla@mail.com",
+  "password": "Carla1234!",
+  "role": "admin"
+}
+
+### R3. RN-02: username repetido (sin distinguir mayúsculas) → 409
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "MARIA",
+  "full_name": "Otra María",
+  "email": "otra@mail.com",
+  "password": "Maria1234!"
+}
+
+### R4. RN-02: email repetido → 409
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "maria2",
+  "full_name": "María Dos",
+  "email": "maria@mail.com",
+  "password": "Maria1234!"
+}
+
+### R5. RN-09: email inválido → 422
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "pepe",
+  "full_name": "Pepe",
+  "email": "esto-no-es-un-email",
+  "password": "Pepe1234!"
+}
+
+### R6. RN-09: contraseña de menos de 8 caracteres → 422
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "pepe",
+  "full_name": "Pepe",
+  "email": "pepe@mail.com",
+  "password": "1234"
+}
+
+### R7. Username con espacios o símbolos → 422
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "pepe argento",
+  "full_name": "Pepe",
+  "email": "pepe@mail.com",
+  "password": "Pepe1234!"
+}
+
+
+### ==========================================================
+### MÓDULO: LOGIN (formulario OAuth2, no JSON)
+### ==========================================================
+
+### L1. Contraseña incorrecta → 401
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=maria&password=equivocada
+
+### L2. Usuario inexistente: MISMO mensaje que L1 → 401
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=noexiste&password=Maria1234!
+
+### L3. HU-02: login correcto (el JWT llega en la cookie HttpOnly access_token) → 200
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=maria&password=Maria1234!
+
+### L4. /auth/me con la cookie → 200
+GET {{baseUrl}}/auth/me
+
+
+### ==========================================================
+### MÓDULO: USUARIO CON ROL "user" (sigue logueada maria)
+### ==========================================================
+
+### U1. RN-07: puede leer → 200
+GET {{baseUrl}}/categorias/
+
+### U2. RN-07: puede leer productos → 200
+GET {{baseUrl}}/productos/
+
+### U3. RN-04: NO puede crear categorías → 403
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Hackeada"
+}
+
+### U4. RN-04: NO puede editar → 403
+PUT {{baseUrl}}/categorias/1
+Content-Type: application/json
+
+{
+  "nombre": "Hackeada"
+}
+
+### U5. RN-04: NO puede borrar productos → 403
+DELETE {{baseUrl}}/productos/1
+
+### U6. RN-04: NO puede crear ingredientes → 403
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Sal",
+  "unidad_medida_id": 2
+}
+
+### U7. NO puede ver la administración de usuarios → 403
+GET {{baseUrl}}/auth/admin/usuarios
+
+### U8. RN-06: los catálogos no tienen escritura (método no permitido) → 405
+POST {{baseUrl}}/unidades-medida/
+Content-Type: application/json
+
+{
+  "nombre": "tonelada"
+}
+
+### U9. RN-06: los catálogos sí se pueden leer → 200
+GET {{baseUrl}}/formas-pago/
+
+
+### ==========================================================
+### MÓDULO: LOGOUT
+### ==========================================================
+
+### O1. HU-03: logout (Set-Cookie que borra la cookie) → 200
+POST {{baseUrl}}/auth/logout
+
+### O2. Después del logout ya no hay sesión → 401
+GET {{baseUrl}}/auth/me
+
+
+### ==========================================================
+### MÓDULO: ADMINISTRACIÓN DE USUARIOS (rol admin)
+### ==========================================================
+
+### M1. Login como admin → 200
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=admin&password=Admin1234!
+
+### M2. Listar usuarios (sin hashed_password) → 200
+GET {{baseUrl}}/auth/admin/usuarios
+
+### M3. Desactivar a maria (id 3) → 200
+POST {{baseUrl}}/auth/admin/usuarios/3/desactivar
+
+### M4. Un admin no puede desactivarse a sí mismo → 409
+POST {{baseUrl}}/auth/admin/usuarios/1/desactivar
+
+### M5. Usuario inexistente → 404
+POST {{baseUrl}}/auth/admin/usuarios/999/desactivar
+
+### M6. RN-11: maria desactivada no puede iniciar sesión → 400
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=maria&password=Maria1234!
+
+### M7. La cookie del admin sigue vigente (el login fallido no la pisa) → 200
+GET {{baseUrl}}/auth/admin/usuarios
+
+### M8. Reactivar a maria → 200
+POST {{baseUrl}}/auth/admin/usuarios/3/activar
+
+### M9. Ahora maria puede volver a entrar → 200
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=maria&password=Maria1234!
+
+### M10. Cerrar sesión → 200
+POST {{baseUrl}}/auth/logout
