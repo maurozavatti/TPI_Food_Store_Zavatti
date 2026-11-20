@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from sqlmodel import func, select
 
-from app.core.repository import BaseRepository
+from app.core.base_repository import BaseRepository
 from .models import Usuario
 
 

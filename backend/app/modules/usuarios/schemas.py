@@ -8,14 +8,13 @@ from sqlmodel import Field, SQLModel
 Rol = Literal["user", "admin"]
 
 
-# ---------- Entrada ----------
 class UserCreate(SQLModel):
-    """Lo que manda el cliente al registrarse (incluye la contraseña en texto plano)."""
+    """Lo que manda el cliente al registrarse."""
 
-    username: str = Field(min_length=3, max_length=50, schema_extra={"examples": ["maria"]})
-    full_name: str = Field(min_length=1, max_length=100, schema_extra={"examples": ["María Gómez"]})
-    email: EmailStr = Field(schema_extra={"examples": ["maria@mail.com"]})  # RN-09: email válido
-    password: str = Field(min_length=8, max_length=72, schema_extra={"examples": ["Maria1234!"]})  # RN-09
+    username: str = Field(min_length=3, max_length=50)
+    full_name: str = Field(min_length=1, max_length=100)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=72)
 
     @field_validator("username", "full_name", mode="before")
     @classmethod
@@ -26,21 +25,12 @@ class UserCreate(SQLModel):
     @classmethod
     def username_valido(cls, v: str) -> str:
         if not re.fullmatch(r"[a-zA-Z0-9_.-]+", v):
-            raise ValueError("Solo letras, números y los símbolos _ . -  (sin espacios)")
-        return v
-
-    @field_validator("password")
-    @classmethod
-    def maximo_72_bytes(cls, v: str) -> str:
-        # bcrypt solo usa los primeros 72 BYTES (una "ñ" o una "á" ocupan 2 bytes en UTF-8)
-        if len(v.encode("utf-8")) > 72:
-            raise ValueError("La contraseña no puede superar los 72 bytes")
+            raise ValueError("Solo letras, números y los símbolos _ . - (sin espacios)")
         return v
 
 
-# ---------- Salida ----------
 class UserPublic(SQLModel):
-    """Lo que sale del servidor: SIN hashed_password."""
+    """Lo que sale del servidor: NUNCA hashed_password."""
 
     id: int
     username: str
@@ -49,7 +39,3 @@ class UserPublic(SQLModel):
     role: Rol
     disabled: bool
     created_at: datetime
-
-
-class MensajeResponse(SQLModel):
-    mensaje: str
