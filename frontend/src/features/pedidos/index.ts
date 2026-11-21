@@ -1,0 +1,13 @@
+// Barrel de la feature pedidos
+export { default as DetallePedido } from './components/DetallePedido'
+export { useCambiarEstadoPedido } from './hooks/useCambiarEstadoPedido'
+export { useCancelarPedido } from './hooks/useCancelarPedido'
+export { useCrearPedido } from './hooks/useCrearPedido'
+export { usePedidos } from './hooks/usePedidos'
+export { useResumenPedidos } from './hooks/useResumenPedidos'
+export { default as AdminPedidosPage } from './pages/AdminPedidosPage'
+export { default as AdminResumenPage } from './pages/AdminResumenPage'
+export { default as CarritoPage } from './pages/CarritoPage'
+export { default as CheckoutPage } from './pages/CheckoutPage'
+export { default as MisPedidosPage } from './pages/MisPedidosPage'
+export type { EstadoPedido, FormaPago, Pedido, ResumenPedidos } from './types/pedido'

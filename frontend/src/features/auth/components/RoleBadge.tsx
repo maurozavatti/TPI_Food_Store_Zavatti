@@ -1,4 +1,4 @@
-import type { Rol } from '../types/auth.types'
+import type { Rol } from '../types/auth'
 
 interface RoleBadgeProps {
   role: Rol

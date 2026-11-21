@@ -1,12 +1,12 @@
 import { useForm } from '@tanstack/react-form'
 import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import Button from '@/shared/components/ui/Button'
-import ErrorBanner from '@/shared/components/ui/ErrorBanner'
-import FieldInfo from '@/shared/components/ui/FieldInfo'
-import { inputClass, labelClass } from '@/shared/components/ui/styles'
+import Button from '@/shared/ui/Button'
+import ErrorBanner from '@/shared/ui/ErrorBanner'
+import FieldInfo from '@/shared/ui/FieldInfo'
+import { inputClass, labelClass } from '@/shared/ui/Input'
 import { useAuth } from '../hooks/useAuth'
-import type { LoginInput } from '../types/auth.types'
+import type { LoginInput } from '../types/auth'
 
 // Lo que pueden mandar otras páginas al redirigir acá
 interface LoginLocationState {
@@ -15,7 +15,7 @@ interface LoginLocationState {
 }
 
 const LoginPage = () => {
-  const { isAuthenticated, login, aviso } = useAuth()
+  const { usuario, login, aviso } = useAuth()
   const location = useLocation()
   const state = (location.state ?? {}) as LoginLocationState
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +34,7 @@ const LoginPage = () => {
   })
 
   // Ya hay sesión → a la página que quería ver o a /categories
-  if (isAuthenticated) return <Navigate to={state.from ?? '/categories'} replace />
+  if (usuario) return <Navigate to={state.from ?? '/categories'} replace />
 
   return (
     <section className="mx-auto max-w-sm rounded-xl bg-white dark:bg-slate-800 p-6 shadow-md">

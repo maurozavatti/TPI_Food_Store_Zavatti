@@ -1,7 +1,0 @@
-// Barrel de la feature ingredients. Desde afuera: import { useIngredients } from '@/features/ingredients'
-export { default as IngredienteModal } from './components/IngredienteModal'
-export { useIngredients } from './hooks/useIngredients'
-export { useUnidadesMedida } from './hooks/useUnidadesMedida'
-export { default as IngredientsPage } from './pages/IngredientsPage'
-export type { Ingrediente, IngredienteInput } from './types/ingrediente'
-export type { UnidadMedida } from './types/unidadMedida'

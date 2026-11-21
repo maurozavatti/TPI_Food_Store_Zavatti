@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
-import { useAuthStore } from '@/features/auth'
 import AppRouter from '@/routes/AppRouter'
 import Toast from '@/shared/components/Toast'
+import { useAuthStore } from '@/store/authStore'
 
-// App solo hace 3 cosas: recuperar la sesión al arrancar, dibujar las rutas y el Toast
 const App = () => {
-  const checkAuth = useAuthStore((s) => s.checkAuth)
+  const checkSession = useAuthStore((s) => s.checkSession)
 
+  // La ÚNICA llamada dentro de un useEffect: confirmar la sesión con /auth/me al montar la app
   useEffect(() => {
-    checkAuth() // GET /auth/me con la cookie HttpOnly
-  }, [checkAuth])
+    checkSession()
+  }, [checkSession])
 
   return (
     <>

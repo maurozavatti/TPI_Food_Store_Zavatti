@@ -1,5 +1,0 @@
-// Barrel de la feature products. Desde afuera: import { useProducts } from '@/features/products'
-export { default as ProductoModal } from './components/ProductoModal'
-export { useProducts } from './hooks/useProducts'
-export { default as ProductsPage } from './pages/ProductsPage'
-export type { Producto, ProductoInput } from './types/producto'

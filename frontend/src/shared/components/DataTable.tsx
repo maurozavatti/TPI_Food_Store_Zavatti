@@ -9,7 +9,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import Button from './ui/Button'
+import Button from '@/shared/ui/Button'
 
 interface DataTableProps<T> {
   data: T[]

@@ -1,37 +1,31 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
 import { useNotificationStore } from '@/store/notificationStore'
-import { useAuthStore } from '../store/authStore'
 
-// Única puerta de entrada de los componentes a la sesión: leen el store y llaman a login / logout desde acá
+// Puerta de entrada de los componentes a la sesión
 export const useAuth = () => {
-  const user = useAuthStore((s) => s.user)
-  const status = useAuthStore((s) => s.status)
+  const usuario = useAuthStore((s) => s.usuario)
+  const cargando = useAuthStore((s) => s.cargando)
   const aviso = useAuthStore((s) => s.aviso)
   const loginStore = useAuthStore((s) => s.login)
   const logoutStore = useAuthStore((s) => s.logout)
   const hasRole = useAuthStore((s) => s.hasRole)
+  const vaciarCarrito = useCartStore((s) => s.vaciar)
   const showNotification = useNotificationStore((s) => s.showNotification)
   const navigate = useNavigate()
 
   const login = async (username: string, password: string) => {
-    await loginStore(username, password) // si falla, el error sube a la página (credenciales incorrectas)
-    showNotification(`¡Hola, ${useAuthStore.getState().user?.full_name ?? username}!`, 'success')
+    await loginStore(username, password)
+    showNotification(`¡Hola, ${useAuthStore.getState().usuario?.full_name ?? username}!`, 'success')
   }
 
   const logout = async () => {
     await logoutStore()
+    vaciarCarrito() // el carrito es del usuario que se va
     showNotification('Sesión cerrada', 'info')
     navigate('/login', { replace: true })
   }
 
-  return {
-    user,
-    status,
-    aviso,
-    isAuthenticated: status === 'authenticated',
-    isAdmin: user?.role === 'admin',
-    hasRole,
-    login,
-    logout,
-  }
+  return { usuario, cargando, aviso, isAdmin: usuario?.role === 'admin', hasRole, login, logout }
 }

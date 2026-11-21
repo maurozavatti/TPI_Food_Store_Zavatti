@@ -1,12 +1,12 @@
 import { useForm } from '@tanstack/react-form'
 import { Link, Navigate } from 'react-router-dom'
-import Button from '@/shared/components/ui/Button'
-import ErrorBanner from '@/shared/components/ui/ErrorBanner'
-import FieldInfo from '@/shared/components/ui/FieldInfo'
-import { inputClass, labelClass } from '@/shared/components/ui/styles'
+import Button from '@/shared/ui/Button'
+import ErrorBanner from '@/shared/ui/ErrorBanner'
+import FieldInfo from '@/shared/ui/FieldInfo'
+import { inputClass, labelClass } from '@/shared/ui/Input'
 import { useAuth } from '../hooks/useAuth'
 import { useRegister } from '../hooks/useRegister'
-import type { RegisterInput } from '../types/auth.types'
+import type { RegisterInput } from '../types/auth'
 
 interface RegisterFormValues extends RegisterInput {
   confirmar: string // solo existe en el formulario, no se envía
@@ -16,7 +16,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const USERNAME_REGEX = /^[a-zA-Z0-9_.-]+$/
 
 const RegisterPage = () => {
-  const { isAuthenticated } = useAuth()
+  const { usuario } = useAuth()
   const registrarMutation = useRegister() // al terminar bien, navega al login
 
   const form = useForm({
@@ -32,12 +32,12 @@ const RegisterPage = () => {
     },
   })
 
-  if (isAuthenticated) return <Navigate to="/categories" replace />
+  if (usuario) return <Navigate to="/categories" replace />
 
   return (
     <section className="mx-auto max-w-md rounded-xl bg-white dark:bg-slate-800 p-6 shadow-md">
       <h2 className="mb-1 text-2xl font-bold text-slate-900 dark:text-slate-100">Crear cuenta</h2>
-      <p className="mb-5 text-sm text-slate-500 dark:text-slate-400">Las cuentas nuevas tienen rol «user» (solo lectura del catálogo).</p>
+      <p className="mb-5 text-sm text-slate-500 dark:text-slate-400">Registrate para hacer pedidos.</p>
 
       {registrarMutation.isError && <ErrorBanner mensaje={registrarMutation.error.message} />}
 

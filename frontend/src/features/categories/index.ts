@@ -1,5 +1,0 @@
-// Barrel de la feature categories. Desde afuera: import { useCategories } from '@/features/categories'
-export { default as CategoriaModal } from './components/CategoriaModal'
-export { useCategories } from './hooks/useCategories'
-export { default as CategoriesPage } from './pages/CategoriesPage'
-export type { Categoria, CategoriaInput } from './types/categoria'
